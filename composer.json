@@ -1,0 +1,21 @@
+{
+    "name": "andrewljashenko/yii2-upload-files-behavior",
+    "description": "Upload files via Behavior",
+    "type": "yii2-extension",
+    "keywords": ["upload","files","multiple","crop","image","images","uploadFiles"],
+    "license": "GPL-2.0",
+    "authors": [
+        {
+            "name": "Andrei Liashenko",
+            "email": "andrewljashenko@gmail.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "andrewljashenko\\behaviors\\": ""
+        }
+    }
+}
