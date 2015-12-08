@@ -7,14 +7,29 @@ use yii\db\BaseActiveRecord;
 use yii\helpers\Url;
 use yii\web\UploadedFile;
 
+/**
+ * Class UploadFilesBehavior
+ * @package andrewljashenko\behaviors
+ */
 class UploadFilesBehavior extends Behavior
 {
+    /**
+     * @var string
+     */
     public $uploadPath = '@common';
-    public $attributes;
+    /**
+     * @var array
+     */
+    public $attributes = array();
+    /**
+     * @var array
+     */
+    public $sizes = array();
     /**
      * Initialize Behavior
      */
     public function init(){}
+
     /**
      * Connect ActiveRecord Events
      *
@@ -27,21 +42,23 @@ class UploadFilesBehavior extends Behavior
         $event[BaseActiveRecord::EVENT_BEFORE_UPDATE] = 'beforeSave';
         return $event;
     }
+
     /**
      * Upload Files Before Save
      *
+     * @return void
      * @version 1.0
      */
     public function beforeSave()
     {
         $owner = $this->owner;
-        //if attributes are not empty
+        // If attributes are not empty.
         if ($this->attributes) {
             foreach ($this->attributes as $attr) {
-                //if Isset attribute in our Model
+                // If Isset attribute in our Model.
                 if (isset($owner->{$attr['attribute']}) && $path = $this->getPath($attr)) {
                     $files = UploadedFile::getInstances($owner, $attr['attribute']);
-                    //if array with files is not empty
+                    // If array with files is not empty.
                     if ($files) {
                         foreach ($files as $file) {
                             $file->saveAs(Url::to($path . DIRECTORY_SEPARATOR . $file->name));
@@ -51,6 +68,7 @@ class UploadFilesBehavior extends Behavior
             }
         }
     }
+
     /**
      * Return Upload Dir Path
      *

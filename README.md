@@ -28,4 +28,10 @@ Usage
 Once the extension is installed, simply use it in your code by  :
 
 ```php
-<?= \andrewljashenko\behaviors\AutoloadExample::widget(); ?>```
+[
+                'class' => UploadFilesBehavior::className(), //Behavior class
+                'attributes' => ['images', 'files'],         //Fields into your Model
+                'uploadPath' => '@app/images',               //Upload directory
+                'sizes' => [[100, 100], [250, 200]]          //Sizes of images. Stored in @app/images/100x100/YOUR_IMAGE
+            ]
+```
