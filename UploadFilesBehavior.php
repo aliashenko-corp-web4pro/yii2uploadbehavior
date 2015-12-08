@@ -6,6 +6,7 @@ use yii\base\Behavior;
 use yii\db\BaseActiveRecord;
 use yii\helpers\Url;
 use yii\web\UploadedFile;
+use Gregwar\Image\Image;
 
 /**
  * Class UploadFilesBehavior
@@ -14,24 +15,21 @@ use yii\web\UploadedFile;
 class UploadFilesBehavior extends Behavior
 {
     /**
-     * @var string
+     * @var string Upload files directory.
      */
     public $uploadPath = '@common';
     /**
-     * @var array
+     * @var array Array of attributes
      */
     public $attributes = array();
+
     /**
-     * @var array
-     */
-    public $sizes = array();
-    /**
-     * Initialize Behavior
+     * Initialize Behavior.
      */
     public function init(){}
 
     /**
-     * Connect ActiveRecord Events
+     * Connect ActiveRecord Events.
      *
      * @return array
      * @version 1.0
@@ -44,7 +42,7 @@ class UploadFilesBehavior extends Behavior
     }
 
     /**
-     * Upload Files Before Save
+     * Upload Files Before Save.
      *
      * @return void
      * @version 1.0
@@ -61,10 +59,32 @@ class UploadFilesBehavior extends Behavior
                     // If array with files is not empty.
                     if ($files) {
                         foreach ($files as $file) {
-                            $file->saveAs(Url::to($path . DIRECTORY_SEPARATOR . $file->name));
+                            $url = Url::to($path . DIRECTORY_SEPARATOR . $file->name);
+                            $file->saveAs($url);
+                            // If it is image then crop it.
+                            if (getimagesize($url) && isset($attr['sizes'])) {
+                                $this->crop($attr, $file, Url::to($path));
+                            }
                         }
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * @param $attr
+     * @param $file
+     * @param $path
+     */
+    private function crop($attr, $file, $path)
+    {
+        // Is isset Sizes of the image.
+        if (isset($attr['sizes']) && $attr['sizes']) {
+            foreach ($attr['sizes'] as $size) {
+                Image::open($path . DIRECTORY_SEPARATOR . $file->name)
+                    ->cropResize($size[0], $size[1])
+                    ->save($path . DIRECTORY_SEPARATOR . $size[0] . 'x' . $size[1] . DIRECTORY_SEPARATOR . $file->name);
             }
         }
     }
