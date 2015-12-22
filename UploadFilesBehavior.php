@@ -49,6 +49,7 @@ class UploadFilesBehavior extends Behavior
      */
     public function beforeSave()
     {
+        $result = []; //Array of Images data.
         $owner = $this->owner;
         // If attributes are not empty.
         if ($this->attributes) {
@@ -58,14 +59,20 @@ class UploadFilesBehavior extends Behavior
                     $files = UploadedFile::getInstances($owner, $attr['attribute']);
                     // If array with files is not empty.
                     if ($files) {
-                        foreach ($files as $file) {
+                        foreach ($files as $key => $file) {
                             $url = Url::to($path . DIRECTORY_SEPARATOR . $file->name);
-                            $file->saveAs($url);
-                            // If it is image then crop it.
-                            if (getimagesize($url) && isset($attr['sizes'])) {
-                                $this->crop($attr, $file, Url::to($path));
+                            if ($file->saveAs($url)) {
+                                $result[$attr['attribute']][$key] = [
+                                    'url' => $url,
+                                    'file' => $file,
+                                ];
+                                // If it is image then crop it.
+                                if (getimagesize($url) && isset($attr['sizes'])) {
+                                    $result[$attr['attribute']][$key]['cropped'][] = $this->crop($attr, $file, Url::to($path));
+                                }
                             }
                         }
+                        $this->owner->{$attr['attribute']} = $result[$attr['attribute']];
                     }
                 }
             }
@@ -76,17 +83,23 @@ class UploadFilesBehavior extends Behavior
      * @param $attr
      * @param $file
      * @param $path
+     * @return array
+     * @throws \Exception
      */
     private function crop($attr, $file, $path)
     {
+        $result = [];
         // Is isset Sizes of the image.
         if (isset($attr['sizes']) && $attr['sizes']) {
             foreach ($attr['sizes'] as $size) {
+                $uploadPath = $path . DIRECTORY_SEPARATOR . $size[0] . 'x' . $size[1] . DIRECTORY_SEPARATOR . $file->name;
                 Image::open($path . DIRECTORY_SEPARATOR . $file->name)
                     ->cropResize($size[0], $size[1])
-                    ->save($path . DIRECTORY_SEPARATOR . $size[0] . 'x' . $size[1] . DIRECTORY_SEPARATOR . $file->name);
+                    ->save($uploadPath);
+                $result[$size[0] . 'x' . $size[1]] = $uploadPath;
             }
         }
+        return $result;
     }
 
     /**
